@@ -6,7 +6,10 @@
 
 package vipsclient;
 
+import vipsclient.gui.CallControlsPanel;
+import vipsclient.gui.ContactListPanel;
 import vipsclient.gui.MainFrame;
+import vipsclient.gui.ServerControlsPanel;
 
 /**
  *
@@ -19,7 +22,12 @@ public class VipsClient {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        new MainFrame();
+        new Controller(
+                new MainFrame(),
+                new ContactListPanel(),
+                new CallControlsPanel(),
+                new ServerControlsPanel()
+        ).start();
     }
     
 }
