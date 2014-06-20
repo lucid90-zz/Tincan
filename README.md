@@ -1,4 +1,4 @@
 VipsClient
 ==========
 
-Client for a secure VOIP 
+Client for secure VOIP 
