@@ -7,18 +7,21 @@
 package vipsclient.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.border.EtchedBorder;
+import vipsclient.Controller;
 
 /**
  *
  * @author LucianDobre
  */
-public class MainFrame extends JFrame{
+public class MainFrame extends JFrame implements ActionListener{
 
+    Controller ctrl;
+    
     CallControlsPanel jpCall;
     ContactListPanel jpContacts;
     ServerControlsPanel jpServer;
@@ -29,22 +32,33 @@ public class MainFrame extends JFrame{
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
     
-    public void loadFrame(){
-        setLayout( new BorderLayout() );
-        jpContacts.setBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-                        "Contacts"));
-        getContentPane().add(jpContacts, BorderLayout.EAST);
-        
-        jpCall.setBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-                        "Call Details"));
-        getContentPane().add(jpCall, BorderLayout.WEST);
-        
-        jpServer.setBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-                        "Server Details"));
-        getContentPane().add(jpServer, BorderLayout.SOUTH);
+    /* Call assemble only after all dependencies have been injected*/
+    public void assemble(){
+        setLayout(new BorderLayout());
+
+        if (jpContacts != null) {
+            jpContacts.setBorder(
+                    BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+                            "Contacts"));
+            jpContacts.assemble();
+            getContentPane().add(jpContacts, BorderLayout.EAST);
+        }
+
+        if (jpCall != null) {
+            jpCall.setBorder(
+                    BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+                            "Call Details"));
+            jpCall.assemble();
+            getContentPane().add(jpCall, BorderLayout.WEST);
+        }
+
+        if (jpServer != null) {
+            jpServer.setBorder(
+                    BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+                            "Server Details"));
+            jpServer.assemble();
+            getContentPane().add(jpServer, BorderLayout.SOUTH);
+        }
     }
 
     public CallControlsPanel getJpCall() {
@@ -70,7 +84,17 @@ public class MainFrame extends JFrame{
     public void setJpServer(ServerControlsPanel jpServer) {
         this.jpServer = jpServer;
     }
-    
-    
-    
+
+    public Controller getCtrl() {
+        return ctrl;
+    }
+
+    public void setCtrl(Controller ctrl) {
+        this.ctrl = ctrl;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        System.out.println("MainFrame");
+    }
 }
