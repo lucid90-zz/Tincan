@@ -116,11 +116,11 @@ public class ControlsPanel extends JPanel implements ActionListener, ChangeListe
         System.out.println("ControlsPanel");
         
         if ( e.getSource().equals(jbStartCall)){
-            System.out.println("Pressed to Start Call");
+            System.out.println("Pressed to Start Call with "+ getCtrl().getContacts().get(getCtrl().getJpContacts().getJtContactTable().getSelectedRow()));
         }
         
         if ( e.getSource().equals(jbCloseCall)){
-            System.out.println("Pressed to End Call");
+            System.out.println("Pressed to End Call with "+ getCtrl().getContacts().get(getCtrl().getJpContacts().getJtContactTable().getSelectedRow()));
         }
     }
 

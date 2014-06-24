@@ -77,5 +77,12 @@ public class Contact {
             toReturn.add(c.toVector());
         return toReturn;
     }
+
+    @Override
+    public String toString() {
+        return firstName+" "+LastName;
+    }
+    
+    
     
 }

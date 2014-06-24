@@ -15,6 +15,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import vipsclient.Controller;
+import vipsclient.entity.Server;
 
 /**
  *
@@ -25,7 +26,7 @@ public class ServerControlsPanel extends JPanel implements ActionListener{
     Controller ctrl;
     
     JButton jbConnect, jbSettings;
-    JComboBox<String> jcbServerSelect;
+    JComboBox<Server> jcbServerSelect;
 
     public ServerControlsPanel() {
         setPreferredSize(new Dimension(600,50));
@@ -35,14 +36,14 @@ public class ServerControlsPanel extends JPanel implements ActionListener{
     /* Call assemble only after all dependencies have been injected*/
     public void assemble(){
         jbConnect = new JButton("Connect");
+        jbConnect.addActionListener(this);
         add(jbConnect, BorderLayout.WEST);
         
         jbSettings = new JButton("Settings");
+        jbSettings.addActionListener(this);
         add(jbSettings, BorderLayout.EAST );
         
-        Vector<String> mockServers = new Vector<>();
-        mockServers.add("VipsAlpha");
-        jcbServerSelect = new JComboBox<>(mockServers);
+        jcbServerSelect = new JComboBox<Server>(getCtrl().getServers());
         add(jcbServerSelect, BorderLayout.CENTER);
     }
 
@@ -57,6 +58,13 @@ public class ServerControlsPanel extends JPanel implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         System.out.println("ServerControlsPanel");
+        if ( e.getSource().equals(jbConnect) ){
+            System.out.println("Selected to connect to server " + ((Server)jcbServerSelect.getSelectedItem()) );
+        }
+        
+        if ( e.getSource().equals(jbSettings) ){
+            System.out.println("Selected to modify settings");
+        }
     }
     
 }

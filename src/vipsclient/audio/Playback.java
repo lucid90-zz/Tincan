@@ -6,7 +6,7 @@
 
 package vipsclient.audio;
 
-import vipsclient.entity.AudioOutput;
+import vipsclient.Controller;
 
 /**
  *
@@ -14,7 +14,9 @@ import vipsclient.entity.AudioOutput;
  */
 public class Playback extends Thread{
 
+    public volatile boolean running = true;
     AudioOutput stream;
+    Controller ctrl;
     
     @Override
     public void run() {
@@ -27,6 +29,18 @@ public class Playback extends Thread{
 
     public void setStream(AudioOutput stream) {
         this.stream = stream;
+    }
+    
+    public void stopPlaying(){
+        running = false;
+    }
+
+    public Controller getCtrl() {
+        return ctrl;
+    }
+
+    public void setCtrl(Controller ctrl) {
+        this.ctrl = ctrl;
     }
     
 }

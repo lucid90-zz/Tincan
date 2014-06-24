@@ -6,7 +6,9 @@
 
 package vipsclient.audio;
 
-import vipsclient.entity.AudioInput;
+import java.io.ByteArrayOutputStream;
+import javax.sound.sampled.LineUnavailableException;
+import vipsclient.Controller;
 
 /**
  *
@@ -14,11 +16,40 @@ import vipsclient.entity.AudioInput;
  */
 public class Capture extends Thread{
 
-    AudioInput stream;    
+    public volatile boolean running = true;
+    AudioInput stream;
+    Controller ctrl;
     
     @Override
     public void run() {
         setName("StreamInput");
+        
+        try {
+            stream.getLine().open(
+                    stream.getAudioFormat(),
+                    stream.getLine().getBufferSize());
+        } catch (LineUnavailableException ex) {
+            System.out.println("Unable to open the line: \n" + ex);
+            return;
+        }
+        
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int frameSizeInBytes = stream.getAudioFormat().getFrameSize();
+        int bufferLengthInFrames = stream.getLine().getBufferSize() / 8 ;
+        int bufferLengthInBytes = bufferLengthInFrames * frameSizeInBytes;
+        byte[] data = new byte[bufferLengthInBytes];
+        
+        int numBytesRead;
+        
+        stream.getLine().start();
+        
+        while ( running ){
+            //Create a frame
+            
+            //Send frame over network
+        }
+        
+        
     }
 
     public AudioInput getStream() {
@@ -27,6 +58,18 @@ public class Capture extends Thread{
 
     public void setStream(AudioInput stream) {
         this.stream = stream;
+    }
+
+    public void stopCapturing(){
+        running = false;
+    }
+
+    public Controller getCtrl() {
+        return ctrl;
+    }
+
+    public void setCtrl(Controller ctrl) {
+        this.ctrl = ctrl;
     }
     
 }

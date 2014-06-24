@@ -6,6 +6,7 @@
 
 package vipsclient;
 
+import java.security.PublicKey;
 import java.util.Vector;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -15,15 +16,18 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
+import vipsclient.audio.AudioInput;
+import vipsclient.audio.AudioOutput;
 import vipsclient.audio.Capture;
 import vipsclient.audio.Playback;
-import vipsclient.entity.AudioInput;
-import vipsclient.entity.AudioOutput;
 import vipsclient.entity.Contact;
+import vipsclient.entity.Server;
 import vipsclient.gui.CallControlsPanel;
 import vipsclient.gui.ContactListPanel;
 import vipsclient.gui.MainFrame;
 import vipsclient.gui.ServerControlsPanel;
+import vipsclient.network.CallMaintainer;
+import vipsclient.network.CallListener;
 
 /**
  *
@@ -37,17 +41,27 @@ public class Controller {
     CallControlsPanel jpCall;
     ServerControlsPanel jpServer;
     
-    /*Coms*/
+    /*Audio*/
     AudioInput selectedAI;
     AudioOutput selectedAO;
-    Capture capture;
-    Playback playback;
     
     /*Volume*/
     int microphoneVolume, speakerVolume;
     
+    /*Security*/
+    PublicKey spk;
+    
+    /*Network*/
+    CallListener listener;
+    CallMaintainer maintainer;
+    
     /*Data*/
     Vector<Contact> contacts;
+    Vector<Server> servers;
+    
+    /*LoggedIn user*/
+    Contact loggedInContact;
+    Server selectedServer;
     
 
     public Controller(MainFrame mf, ContactListPanel jpContacts, CallControlsPanel jpCall, ServerControlsPanel jpServer) {
@@ -67,6 +81,10 @@ public class Controller {
         mf.setJpContacts(jpContacts);
         mf.setJpCall(jpCall);
         mf.setJpServer(jpServer);
+        
+        /* Set default starting volumes */
+        microphoneVolume = 25;
+        speakerVolume = 25;
         
         /* Microphone initialization */
         selectedAI = new AudioInput();
@@ -114,10 +132,14 @@ public class Controller {
             selectedAO = null;
         }
         
-        microphoneVolume = 25;
-        speakerVolume = 25;
+        //TODO Load contacts
+        loggedInContact = new Contact();
+        loggedInContact.setFirstName("Valentin");
+        loggedInContact.setLastName("Dobre");
+        loggedInContact.setHostname("localhost");
+        loggedInContact.setPort("1234567");
+        loggedInContact.setKp(null);
         
-        //TODO Load contacts from file
         contacts = new Vector();
         Contact c = new Contact();
         c.setFirstName("Lucian");
@@ -127,15 +149,34 @@ public class Controller {
         c.setKp(null);
         contacts.add(c);
         
-        //TODO Load general settings from file
+        //TODO Load Servers
+        servers = new Vector<>();
+        selectedServer = new Server();
+        selectedServer.setHostname("localhost");
+        selectedServer.setPort("666666");
+        selectedServer.setKp(null);
+        
+        servers.add(selectedServer);
+        
+        
     }
     
+    /**
+     * Calls Contact c creating all needed threads and so on
+     * @param c 
+     */
     public void call(Contact c){
-        
+        maintainer = new CallMaintainer();
+        maintainer.setPartner(c);
+        maintainer.setCapture(new Capture());
+        maintainer.setPlayback(new Playback());
+        maintainer.setInitiator(true);
+        maintainer.start();
     }
     
     public void hang(){
-        
+        maintainer.stopCall();
+        maintainer = null;
     }
 
     public MainFrame getMf() {
@@ -144,7 +185,6 @@ public class Controller {
     
     public void start(){
         getMf().assemble();
-        getMf().setVisible(true);
     }
 
     public void setMf(MainFrame mf) {
@@ -215,23 +255,28 @@ public class Controller {
         this.speakerVolume = speakerVolume;
     }
 
-    public Capture getCapture() {
-        return capture;
+    public Vector<Server> getServers() {
+        return servers;
     }
 
-    public void setCapture(Capture capture) {
-        this.capture = capture;
+    public void setServers(Vector<Server> servers) {
+        this.servers = servers;
     }
 
-    public Playback getPlayback() {
-        return playback;
+    public Contact getLoggedInContact() {
+        return loggedInContact;
     }
 
-    public void setPlayback(Playback playback) {
-        this.playback = playback;
+    public void setLoggedInContact(Contact loggedInContact) {
+        this.loggedInContact = loggedInContact;
     }
-    
-    
-    
+
+    public Server getSelectedServer() {
+        return selectedServer;
+    }
+
+    public void setSelectedServer(Server selectedServer) {
+        this.selectedServer = selectedServer;
+    }
     
 }

@@ -4,21 +4,21 @@
  * and open the template in the editor.
  */
 
-package vipsclient.entity;
+package vipsclient.audio;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.DataLine;
-import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.TargetDataLine;
 
 /**
  *
  * @author LucianDobre
  */
-public class AudioOutput {
+public class AudioInput {
     private String mixerName;
     private AudioFormat audioFormat;
     private DataLine.Info lineInfo;
-    private SourceDataLine line;
+    private TargetDataLine line;
 
     public String getMixerName() {
         return mixerName;
@@ -44,11 +44,11 @@ public class AudioOutput {
         this.lineInfo = lineInfo;
     }
 
-    public SourceDataLine getLine() {
+    public TargetDataLine getLine() {
         return line;
     }
 
-    public void setLine(SourceDataLine line) {
+    public void setLine(TargetDataLine line) {
         this.line = line;
-    }
+    }    
 }

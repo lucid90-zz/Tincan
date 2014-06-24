@@ -59,6 +59,8 @@ public class MainFrame extends JFrame implements ActionListener{
             jpServer.assemble();
             getContentPane().add(jpServer, BorderLayout.SOUTH);
         }
+        
+        setVisible(true);
     }
 
     public CallControlsPanel getJpCall() {

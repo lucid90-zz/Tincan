@@ -66,6 +66,14 @@ public class ContactListPanel extends JPanel implements ActionListener{
     public void setCtrl(Controller ctrl) {
         this.ctrl = ctrl;
     }
+
+    public JTable getJtContactTable() {
+        return jtContactTable;
+    }
+
+    public DefaultTableModel getContactTableModel() {
+        return contactTableModel;
+    }
     
     public void setContactList(Vector<Contact> contacts){
         Vector header = new Vector();

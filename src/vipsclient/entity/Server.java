@@ -4,21 +4,17 @@
  * and open the template in the editor.
  */
 
-package vipsclient.network;
+package vipsclient.entity;
 
 /**
  *
  * @author LucianDobre
  */
-public class CallInitiator extends Thread{
-    
+public class Server extends Contact{
+
     @Override
-    public void run(){
-        
-        //Ask server if contact is online
-        
-        //Call contact through protocol
-        
-        //Exchange frame data
+    public String toString() {
+        return hostname;
     }
+    
 }
