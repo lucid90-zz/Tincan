@@ -129,6 +129,14 @@ public class Controller {
         
         //TODO Load general settings from file
     }
+    
+    public void call(Contact c){
+        
+    }
+    
+    public void hang(){
+        
+    }
 
     public MainFrame getMf() {
         return mf;

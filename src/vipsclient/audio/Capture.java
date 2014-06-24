@@ -6,15 +6,27 @@
 
 package vipsclient.audio;
 
+import vipsclient.entity.AudioInput;
+
 /**
  *
  * @author LucianDobre
  */
-public class Capture implements Runnable{
+public class Capture extends Thread{
 
+    AudioInput stream;    
+    
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        setName("StreamInput");
+    }
+
+    public AudioInput getStream() {
+        return stream;
+    }
+
+    public void setStream(AudioInput stream) {
+        this.stream = stream;
     }
     
 }
