@@ -21,7 +21,6 @@ public class VipsClient {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
 
         if ( args.length < 1 ){
             System.out.println("Not enough arguments, use something like:\njava tincan pathToConfigFile");
