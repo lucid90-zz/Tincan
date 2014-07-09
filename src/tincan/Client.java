@@ -15,7 +15,7 @@ import tincan.gui.ServerControlsPanel;
  *
  * @author LucianDobre
  */
-public class VipsClient {
+public class Client {
 
     /**
      * @param args the command line arguments

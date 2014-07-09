@@ -13,7 +13,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Vector;
@@ -22,9 +21,7 @@ import java.util.logging.Logger;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
-import javax.sound.sampled.Line;
 import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 import tincan.audio.AudioInput;
@@ -37,7 +34,7 @@ import tincan.gui.CallControlsPanel;
 import tincan.gui.ContactListPanel;
 import tincan.gui.MainFrame;
 import tincan.gui.ServerControlsPanel;
-import tincan.network.CallEmiter;
+import tincan.network.CallEmitter;
 import tincan.network.CallListener;
 import tincan.security.SecurityUtils;
 
@@ -65,7 +62,7 @@ public class Controller {
     
     /*Network*/
     CallListener listener;
-    CallEmiter emitter;
+    CallEmitter emitter;
     
     /*Data*/
     Vector<Contact> contacts;
@@ -119,18 +116,6 @@ public class Controller {
         selectedAI = new AudioInput();
         selectedAI.setAudioFormat(new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100.0f, 16, 2, 4, 44100.0f, true));
         selectedAI.setLineInfo( new DataLine.Info(TargetDataLine.class,selectedAI.getAudioFormat()) );
-        Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
-        for ( Mixer.Info info : mixerInfos ){
-            Mixer m = AudioSystem.getMixer(info);
-            Line.Info[] lineInfos = m.getSourceLineInfo();
-            for (Line.Info lineInfo : lineInfos) {
-                if ( lineInfo.equals(selectedAI.getLineInfo()) ){
-                    selectedAI.setMixerName(m.getMixerInfo().getName());
-                    break;
-                }
-            }
-            if ( selectedAI.getMixerName() != null ) break;
-        }
         try{
             selectedAI.setLine( (TargetDataLine) AudioSystem.getLine(selectedAI.getLineInfo()));
         } catch( LineUnavailableException lueEx){
@@ -142,18 +127,6 @@ public class Controller {
         selectedAO = new AudioOutput();
         selectedAO.setAudioFormat(new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100.0f, 16, 2, 4, 44100.0f, true));
         selectedAO.setLineInfo( new DataLine.Info(SourceDataLine.class,selectedAO.getAudioFormat()) );
-        mixerInfos = AudioSystem.getMixerInfo();
-        for ( Mixer.Info info : mixerInfos ){
-            Mixer m = AudioSystem.getMixer(info);
-            Line.Info[] lineInfos = m.getSourceLineInfo();
-            for (Line.Info lineInfo : lineInfos) {
-                if ( lineInfo.equals(selectedAO.getLineInfo()) ){
-                    selectedAO.setMixerName(m.getMixerInfo().getName());
-                    break;
-                }
-            }
-            if ( selectedAO.getMixerName() != null ) break;
-        }
         try{
             selectedAO.setLine( (SourceDataLine) AudioSystem.getLine(selectedAO.getLineInfo()));
         } catch( LineUnavailableException lueEx){
@@ -216,7 +189,7 @@ public class Controller {
         listener.start();
         
         //TODO start general call emitter
-        emitter = new CallEmiter();
+        emitter = new CallEmitter();
         emitter.setCtrl(this);
         emitter.setCapture(new Capture());
         emitter.start();
@@ -362,11 +335,11 @@ public class Controller {
         this.listener = listener;
     }
 
-    public CallEmiter getEmitter() {
+    public CallEmitter getEmitter() {
         return emitter;
     }
 
-    public void setEmitter(CallEmiter emitter) {
+    public void setEmitter(CallEmitter emitter) {
         this.emitter = emitter;
     }
     

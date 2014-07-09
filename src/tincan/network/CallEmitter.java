@@ -10,12 +10,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import tincan.Controller;
 import tincan.audio.Capture;
-import tincan.audio.Playback;
 import tincan.entity.Contact;
 import tincan.security.SecurityUtils;
 
@@ -23,7 +21,7 @@ import tincan.security.SecurityUtils;
  *
  * @author LucianDobre
  */
-public class CallEmiter extends Thread{
+public class CallEmitter extends Thread{
     
     public volatile boolean running = true;
     public volatile boolean inCall = false;
@@ -42,8 +40,10 @@ public class CallEmiter extends Thread{
         Frame req = null, res = null;
         Contact c = null;
         
-        byte frameSize, pos, len;
+        int frameSize, pos, len;
         byte[] frameBuffer = null;
+        
+        System.out.println("STARTING EMITTER");
  
         while (running) {
 
@@ -51,13 +51,13 @@ public class CallEmiter extends Thread{
 
                 if (inCall) {//If in call need to establish link
                     if (!established) { //initial part of protocol
-                        
+                        System.out.println("Proceeding to establish call to \nH-["+partner.getHostname()+"]\nP-["+partner.getPort()+"]");
                         requestChannel = SocketChannel.open(
                                 new InetSocketAddress(
                                         partner.getHostname(), 
                                         Integer.parseInt(partner.getPort())));
                         out = new ObjectOutputStream(requestChannel.socket().getOutputStream());
-                        in = new ObjectInputStream(requestChannel.socket().getInputStream());
+                        in  = new ObjectInputStream( requestChannel.socket().getInputStream() );
                         
                         //Send Call request
                         req = new Frame();
@@ -67,19 +67,21 @@ public class CallEmiter extends Thread{
                                 getCtrl().getLoggedInContact().getKp().getPrivate(),
                                 getCtrl().getLoggedInContact().getKp().getPublic().getEncoded()));
                         req.setPayload(new byte[0]);
-                        
+
+                        System.out.println("Emitter [Tx][CALL]");
                         out.write(req.pack());
+                        out.reset();
                         
                         
                         //Wait for proper response
                         while ( true ){
                             //Receive response
-                            frameSize = in.readByte();
+                            frameSize = in.readInt();
                             frameBuffer = new byte[frameSize];
                             pos = 0;
 
                             while (pos < frameSize) {
-                                len = (byte) in.read(frameBuffer, pos, frameSize - pos);
+                                len = in.read(frameBuffer, pos, frameSize - pos);
                                 pos += len;
                             }
 
@@ -97,7 +99,10 @@ public class CallEmiter extends Thread{
                                                 getCtrl().getLoggedInContact().getKp().getPublic().getEncoded()
                                         ));
                                 req.setPayload(new byte[0]);
+                                
+                                System.out.println("Emitter [Tx][REJECT]");
                                 out.write(req.pack());
+                                out.reset();
                                 continue;
                             }
                             break;
@@ -109,6 +114,7 @@ public class CallEmiter extends Thread{
                             getCtrl().hang();
                             break;
                         }
+                        System.out.println("Emitter [Rx][RESPOND]");
                         
                         req = new Frame();
                         req.setFrom(getCtrl().getLoggedInContact().toString());
@@ -118,9 +124,20 @@ public class CallEmiter extends Thread{
                                 getCtrl().getLoggedInContact().getKp().getPublic().getEncoded()
                         ));
                         req.setPayload(new byte[0]);
+                        
+                        System.out.println("Emitter [Tx][ACKNOWLEDGE]");
                         out.write(req.pack());
+                        out.reset();
+                        
+                        capture = new Capture();
+                        capture.setStream(getCtrl().getSelectedAI());
+                        capture.setCtrl(getCtrl());
+                        capture.start();
+                        
+                        established = true;
                         
                     } else { // data streaming part of protocol
+                        System.out.println("Emitter [Tx][DATA1]");
                         requestChannel = SocketChannel.open(
                                 new InetSocketAddress(
                                         partner.getHostname(), 
@@ -129,15 +146,11 @@ public class CallEmiter extends Thread{
                         in = new ObjectInputStream(requestChannel.socket().getInputStream());
                         
                         //Send Call request
-                        req = new Frame();
-                        req.setFrom(getCtrl().getLoggedInContact().toString());
-                        req.setType(""+Frame.DATA);
-                        req.setSignedPK(SecurityUtils.sign(
-                                getCtrl().getLoggedInContact().getKp().getPrivate(),
-                                getCtrl().getLoggedInContact().getKp().getPublic().getEncoded()));
-                        req.setPayload(getCapture().getStreamBytes());
+                        req = getCapture().getStreamBytes();
                         
+                        System.out.println("Emitter [Tx][DATA2]");
                         out.write(req.pack());
+                        out.reset();
                     }
                 }
             } catch (IOException ex) {

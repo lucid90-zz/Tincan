@@ -44,11 +44,11 @@ public class CallListener extends Thread{
         if ( !registerClient() )
             JOptionPane.showMessageDialog(getCtrl().getMf(), "Could not register to default server.");
         
-        
         Contact c = null;
         
+        System.out.println("STARTING LISTENER");
+        
         try {
-            
         
             serverSocket = ServerSocketChannel.open();
             
@@ -66,21 +66,28 @@ public class CallListener extends Thread{
                 in = new ObjectInputStream(requestSocket.socket().getInputStream());
                 out = new ObjectOutputStream(requestSocket.socket().getOutputStream());
                 
-                byte frameSize = in.readByte();
+                int frameSize = in.readInt();
+                
+                System.out.println("Framesize: "+frameSize);
+                
                 byte[] frameBuffer = new byte[frameSize];
-                byte pos = 0, len;
+                int pos = 0, len;
                 
                 while ( pos < frameSize ){
-                    len = (byte) in.read(frameBuffer, pos, frameSize - pos);
+                    len = in.read(frameBuffer, pos, frameSize - pos);
                     pos += len;
                 }
+                
+                System.out.println(new String(frameBuffer));
                 
                 Frame req = Frame.unpack(frameBuffer);
                 Frame res = null;
                 
                 switch( Integer.parseInt(req.getType()) ){
                     case Frame.CALL:
+                        System.out.println("Listener [Rx][CALL]");
                         if ( inCall == true){ //Reject call because we are already in a call
+                            System.out.println("Listener [Rejecting a Call Request]");
                             res = new Frame();
                             res.setFrom(getCtrl().getLoggedInContact().toString());
                             res.setType(""+Frame.REJECT);
@@ -91,6 +98,7 @@ public class CallListener extends Thread{
                                     ));
                             res.setPayload(new byte[0]);
                             out.write(res.pack());
+                            out.reset();
                             break;
                         }
                         
@@ -107,12 +115,16 @@ public class CallListener extends Thread{
                                     ));
                             res.setPayload(new byte[0]);
                             out.write(res.pack());
+                            out.reset();
                             break;
                         }
+                        System.out.println("Listener [User Authenticated]");
                         
                         //Accept call
+                        System.out.println("Listener [Setting new call partner]");
                         setPartner(getCtrl().getContactByName(req.getFrom()));
                         getCtrl().getEmitter().setPartner(partner);
+                        
                         res = new Frame();
                         res.setFrom(getCtrl().getLoggedInContact().toString());
                         res.setType(""+Frame.RESPOND);
@@ -124,22 +136,26 @@ public class CallListener extends Thread{
                         res.setPayload(new byte[0]);
                         
                         //Mark client as inside conversation
+                        System.out.println("Listener [Starting call on listener and on emitter]");
                         startCall();
                         getCtrl().getEmitter().startCall();
                         
                         //Send response
+                        System.out.println("Listener [Tx][RESPOND]");
                         out.write(res.pack());
+                        out.reset();
                         
                         //Await Three-way-handshake conclusion
                         while (true) {
-                            requestSocket = serverSocket.accept();
+                            System.out.println("Listener [AWAITING HANDSHAKE]");
 
-                            frameSize = in.readByte();
+                            frameSize = in.readInt();
+                            System.out.println("FRAMESIZE: "+ frameSize);
                             frameBuffer = new byte[frameSize];
                             pos = 0;
 
                             while (pos < frameSize) {
-                                len = (byte) in.read(frameBuffer, pos, frameSize - pos);
+                                len = in.read(frameBuffer, pos, frameSize - pos);
                                 pos += len;
                             }
 
@@ -157,7 +173,10 @@ public class CallListener extends Thread{
                                                 getCtrl().getLoggedInContact().getKp().getPublic().getEncoded()
                                         ));
                                 res.setPayload(new byte[0]);
+                                
+                                System.out.println("Listener [Tx][REJECT]");
                                 out.write(res.pack());
+                                out.reset();
                                 continue;
                             }
                             break;
@@ -168,9 +187,16 @@ public class CallListener extends Thread{
                             getCtrl().hang();
                             break;
                         }
+                        System.out.println("Listener [Rx][ACKNOWLEDGE]");
+                        
+                        playback = new Playback();
+                        playback.setStream(getCtrl().getSelectedAO());
+                        playback.setCtrl(getCtrl());
+                        playback.start();
 
                         break;
                     case Frame.DATA:
+                        System.out.println("Listener [RX][DATA]");
                         if ( inCall == false){ //Reject data because we are not in a call
                             res = new Frame();
                             res.setFrom(getCtrl().getLoggedInContact().toString());
@@ -182,6 +208,7 @@ public class CallListener extends Thread{
                                     ));
                             res.setPayload(new byte[0]);
                             out.write(res.pack());
+                            out.reset();
                             break;
                         }
                         
@@ -198,16 +225,16 @@ public class CallListener extends Thread{
                                     ));
                             res.setPayload(new byte[0]);
                             out.write(res.pack());
+                            out.reset();
                             break;
                         }
                         
                         //Send data for playback stream;
-                        getPlayback().addBytesToStream(
-                                SecurityUtils.decryptPayload(
-                                        getCtrl().getLoggedInContact().getKp().getPrivate(),
-                                        req.getPayload()));
+                        getPlayback().addBytesToStream(req);
+                                
                         break;
                     case Frame.CLOSE:
+                        System.out.println("Received a Close request");
                         if ( inCall == false){ //Reject close request because we are not in a call
                             res = new Frame();
                             res.setFrom(getCtrl().getLoggedInContact().toString());
@@ -219,6 +246,7 @@ public class CallListener extends Thread{
                                     ));
                             res.setPayload(new byte[0]);
                             out.write(res.pack());
+                            out.reset();
                             break;
                         }
                         
@@ -235,6 +263,7 @@ public class CallListener extends Thread{
                                     ));
                             res.setPayload(new byte[0]);
                             out.write(res.pack());
+                            out.reset();
                             break;
                         }
                         
@@ -250,6 +279,7 @@ public class CallListener extends Thread{
             
         } catch (IOException ex) {
             System.out.println("Network error starting listener");
+            ex.printStackTrace();
         }        
     }
 

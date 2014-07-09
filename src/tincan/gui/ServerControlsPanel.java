@@ -15,6 +15,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import tincan.Controller;
 import tincan.entity.Server;
 
@@ -27,7 +28,7 @@ public class ServerControlsPanel extends JPanel implements ActionListener{
     Controller ctrl;
     
     JButton jbConnect, jbSettings;
-    JComboBox<Server> jcbServerSelect;
+    JTextArea jtaPeerSelect;
 
     public ServerControlsPanel() {
         setPreferredSize(new Dimension(600,50));
@@ -36,7 +37,7 @@ public class ServerControlsPanel extends JPanel implements ActionListener{
     
     /* Call assemble only after all dependencies have been injected*/
     public void assemble(){
-        jbConnect = new JButton("Connect");
+        jbConnect = new JButton("Find");
         jbConnect.addActionListener(this);
         add(jbConnect, BorderLayout.WEST);
         
@@ -44,8 +45,8 @@ public class ServerControlsPanel extends JPanel implements ActionListener{
         jbSettings.addActionListener(this);
         add(jbSettings, BorderLayout.EAST );
         
-        jcbServerSelect = new JComboBox<Server>(getCtrl().getServers());
-        add(jcbServerSelect, BorderLayout.CENTER);
+        jtaPeerSelect = new JTextArea("Name of peer to find on network");
+        add(jtaPeerSelect, BorderLayout.CENTER);
     }
 
     public Controller getCtrl() {
@@ -59,14 +60,6 @@ public class ServerControlsPanel extends JPanel implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         System.out.println("ServerControlsPanel");
-        if ( e.getSource().equals(jbConnect) ){
-            System.out.println("Selected to connect to server " + ((Server)jcbServerSelect.getSelectedItem()) );
-            getCtrl().getListener().unregisterClient();
-            getCtrl().setSelectedServer((Server)jcbServerSelect.getSelectedItem());
-            if ( !getCtrl().getListener().registerClient() ){
-                JOptionPane.showMessageDialog(getCtrl().getMf(), "Could not register to "+((Server)jcbServerSelect.getSelectedItem())+" server.");
-            }
-        }
         
         if ( e.getSource().equals(jbSettings) ){
             System.out.println("Selected to modify settings");

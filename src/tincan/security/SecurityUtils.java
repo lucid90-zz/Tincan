@@ -5,7 +5,6 @@
  */
 package tincan.security;
 
-import java.awt.Frame;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -18,6 +17,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import tincan.network.Frame;
 
 /**
  *
@@ -33,7 +33,7 @@ public class SecurityUtils {
      * @return signed data
      */
     public static byte[] sign(PrivateKey Prk, byte[] data) {
-        return null;
+        return data;
     }
 
     /**
@@ -55,7 +55,7 @@ public class SecurityUtils {
      * @return byte array containing encrypted frame
      */
     public static byte[] encryptFrame(PublicKey pk, Frame data) {
-        return null;
+        return data.pack();
     }
 
     /**
@@ -66,7 +66,7 @@ public class SecurityUtils {
      * @return the decrypted payload from the encrypted data
      */
     public static byte[] decryptPayload(PrivateKey Prk, byte[] data) {
-        return null;
+        return data;
     }
     
     /**

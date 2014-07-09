@@ -29,7 +29,6 @@ public class MainFrame extends JFrame implements ActionListener{
     ServerControlsPanel jpServer;
     
     public MainFrame(){
-        setTitle("Tincan");
         setSize(600, 400);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
     }
@@ -57,11 +56,15 @@ public class MainFrame extends JFrame implements ActionListener{
         if (jpServer != null) {
             jpServer.setBorder(
                     BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-                            "Server Details"));
+                            "Advanced"));
             jpServer.assemble();
             getContentPane().add(jpServer, BorderLayout.SOUTH);
         }
         
+        setTitle("Tincan" + " "
+                + "N-[" + getCtrl().getLoggedInContact().toString() + "] "
+                + "H-[" + getCtrl().getLoggedInContact().getHostname() + "] "
+                + "P-[" + getCtrl().getLoggedInContact().getPort() + "]" );
         setVisible(true);
     }
 

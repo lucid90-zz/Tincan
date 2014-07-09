@@ -6,6 +6,7 @@
 
 package tincan.network;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -64,75 +65,32 @@ public class Frame {
      * @return 
      */
     public byte[] pack(){
-        int frameSize =
-                from.getBytes().length +
-                type.getBytes().length +
-                signedPK.length +
-                payload.length;
+        int frameSize = 
+                from.getBytes().length + 4 + 
+                type.getBytes().length + 4 +
+                signedPK.length + 4 +
+                payload.length + 4;
         
-        byte[] toReturn = new byte[frameSize];
+        ByteBuffer b = ByteBuffer.allocate(frameSize + 4);
+        //Placing frameSize
+        b.putInt(frameSize);
         
+        //Placing from size and content
+        b.putInt(from.getBytes().length);
+        b.put(from.getBytes());
         
+        //Placing type size and content
+        b.putInt(type.getBytes().length);
+        b.put(type.getBytes());
         
+        //Placing signedPK size and content
+        b.putInt(signedPK.length);
+        b.put(signedPK);
         
-        for ( int i = 0 ; i < frameSize ; ++i ){
-            
-            //Placing frameSize
-            if ( i == 0 ){
-                toReturn[i] = (byte) frameSize;
-                continue;
-            }
-            
-            //Placing from size
-            if ( i == 1 ){
-                toReturn[i] = (byte) from.getBytes().length;
-                continue;
-            }
-            
-            //Placing from
-            if ( i < from.getBytes().length + 2 ){
-                toReturn[i] = from.getBytes()[i - 2];
-                continue;
-            }
-            
-            //Placing type length
-            if ( i == from.getBytes().length + 2 ){
-                toReturn[i] = (byte) type.getBytes().length;
-                continue;
-            }
-            
-            //Placing type
-            if ( i < from.getBytes().length + type.getBytes().length + 3 ){
-                toReturn[i] = type.getBytes()[
-                        i - (from.getBytes().length + 3) ];
-                continue;
-            }
-            
-            //placing signedPK length
-            if ( i == from.getBytes().length + type.getBytes().length + 3 ){
-                toReturn[i] = (byte) signedPK.length;
-                continue;
-            }
-            
-            //placing signedPK
-            if ( i < from.getBytes().length + type.getBytes().length + signedPK.length + 4 ){
-                toReturn[i] = signedPK[
-                        i - ( from.getBytes().length + type.getBytes().length + 4)];
-                continue;
-            }
-            
-            //placing payload length
-            if ( i == from.getBytes().length + type.getBytes().length + signedPK.length + 4 ){
-                toReturn[i] = (byte) payload.length;
-                continue;
-            }
-            
-            //placing payload
-            toReturn[i] = payload[
-                    i - (from.getBytes().length + type.getBytes().length + signedPK.length + 5)];
-        }
+        b.putInt(payload.length);
+        b.put(payload);
         
-        return toReturn;        
+        return b.array();        
     }
     
     /**
@@ -141,24 +99,25 @@ public class Frame {
      * @return a frame from data in the byte array
      */
     public static Frame unpack(byte[] data){
-        int pos = 0;
-        byte len = 0;
+        byte[] local = null;
+        ByteBuffer b = ByteBuffer.wrap(data);
         Frame toReturn = new Frame();
         
-        len = data[pos]; pos++;
-        toReturn.setFrom(new String(data, pos, len));
-        pos += len;
+        local = new byte[b.getInt()];
+        b.get(local, 0, local.length);
+        toReturn.setFrom(new String(local));
         
-        len = data[pos]; pos++;
-        toReturn.setType(new String(data, pos, len));
-        pos += len;
+        local = new byte[b.getInt()];
+        b.get(local, 0, local.length);
+        toReturn.setType(new String(local));
         
-        len = data[pos]; pos++;
-        toReturn.setSignedPK(Arrays.copyOfRange(data, pos, pos + len));
-        pos += len;
+        local = new byte[b.getInt()];
+        b.get(local, 0, local.length);
+        toReturn.setSignedPK(local);
         
-        len = data[pos]; pos++;
-        toReturn.setPayload(Arrays.copyOfRange(data, pos, pos + len));
+        local = new byte[b.getInt()];
+        b.get(local, 0, local.length);
+        toReturn.setPayload(local);
         
         return toReturn;
     }

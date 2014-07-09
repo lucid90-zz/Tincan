@@ -6,9 +6,12 @@
 
 package tincan.audio;
 
-import java.io.ByteArrayOutputStream;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import javax.sound.sampled.LineUnavailableException;
 import tincan.Controller;
+import tincan.network.Frame;
+import tincan.security.SecurityUtils;
 
 /**
  *
@@ -17,12 +20,15 @@ import tincan.Controller;
 public class Capture extends Thread{
 
     public volatile boolean running = true;
+    public volatile Deque<Frame> buffer = new ConcurrentLinkedDeque<Frame>();
     AudioInput stream;
     Controller ctrl;
     
     @Override
     public void run() {
         setName("StreamInput");
+        
+        Frame c = null;
         
         try {
             stream.getLine().open(
@@ -33,22 +39,34 @@ public class Capture extends Thread{
             return;
         }
         
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
         int frameSizeInBytes = stream.getAudioFormat().getFrameSize();
         int bufferLengthInFrames = stream.getLine().getBufferSize() / 8 ;
         int bufferLengthInBytes = bufferLengthInFrames * frameSizeInBytes;
         byte[] data = new byte[bufferLengthInBytes];
         
-        int numBytesRead;
-        
         stream.getLine().start();
+        
+        System.out.println("Capture [Starting to capture]");
         
         while ( running ){
             //Create a frame
+            stream.getLine().read(data, 0 , bufferLengthInBytes);
             
-            //Send frame over network
+            System.out.println("Capture [Recording frame]");
+            
+            //Add new frame to captureBuffer
+            c = new Frame();
+            c.setFrom(getCtrl().getLoggedInContact().toString());
+            c.setType("" + Frame.DATA);
+            c.setSignedPK(SecurityUtils.sign(
+                    getCtrl().getLoggedInContact().getKp().getPrivate(),
+                    getCtrl().getLoggedInContact().getKp().getPublic().getEncoded()));
+            c.setPayload(data);
+            buffer.addFirst(c);
         }
         
+        stream.getLine().stop();
+        stream.getLine().close();
         
     }
 
@@ -72,7 +90,8 @@ public class Capture extends Thread{
         this.ctrl = ctrl;
     }
     
-    public byte[] getStreamBytes(){
-        return new byte[0];
+    public Frame getStreamBytes(){
+        while ( buffer.isEmpty() );
+        return buffer.removeLast();
     }
 }
